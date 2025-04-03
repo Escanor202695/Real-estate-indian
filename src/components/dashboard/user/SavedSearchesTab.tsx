@@ -158,7 +158,7 @@ const SavedSearchesTab = () => {
                     </Label>
                   </div>
                   <span className="text-xs text-gray-500">
-                    Created {new Date(search.createdAt).toLocaleDateString()}
+                    Created {new Date(search.createdAt || search.timestamp || Date.now()).toLocaleDateString()}
                   </span>
                 </div>
               </div>

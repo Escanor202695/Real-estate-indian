@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import PropertyList from '@/components/properties/PropertyList';
@@ -6,11 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { Property } from '@/types/property';
 import { Search, Filter, BookmarkPlus } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 import { getProperties } from '@/services/propertyService';
 import { useQuery } from '@tanstack/react-query';
+import { addSavedSearch } from '@/services/userService';
 
 const Properties = () => {
   const navigate = useNavigate();
@@ -130,25 +131,34 @@ const Properties = () => {
   };
 
   // Save the current search
-  const saveSearch = () => {
-    // Here you would typically save to user account, but for now just localStorage
-    const searchParams = {
-      location: locationQuery,
-      propertyType,
-      status,
-      priceRange,
-      bedrooms,
-      savedAt: new Date().toISOString()
-    };
-    
-    const savedSearches = JSON.parse(localStorage.getItem('savedSearches') || '[]');
-    savedSearches.push(searchParams);
-    localStorage.setItem('savedSearches', JSON.stringify(savedSearches));
-    
-    toast({
-      title: "Search Saved",
-      description: "Your property search has been saved successfully.",
-    });
+  const saveSearch = async () => {
+    try {
+      // Create search params object for the API
+      const searchData = {
+        location: locationQuery,
+        propertyType,
+        status,
+        minPrice: priceRange[0] > 0 ? priceRange[0] : undefined,
+        maxPrice: priceRange[1] < 25000000 ? priceRange[1] : undefined,
+        bedrooms: bedrooms !== 'any' ? parseInt(bedrooms) : undefined,
+        notifyByEmail: true
+      };
+      
+      // Call the API to save the search
+      const response = await addSavedSearch(searchData);
+      
+      toast({
+        title: "Search Saved",
+        description: "Your property search has been saved successfully.",
+      });
+    } catch (error) {
+      console.error('Error saving search:', error);
+      toast({
+        title: "Error",
+        description: "There was a problem saving your search. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   // Change page
