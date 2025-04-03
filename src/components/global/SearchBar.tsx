@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search } from 'lucide-react';
 import { addRecentSearch } from '@/services/userService';
-import { toast } from 'sonner';
 
 const SearchBar = ({ className }: { className?: string }) => {
   const navigate = useNavigate();
@@ -37,7 +36,7 @@ const SearchBar = ({ className }: { className?: string }) => {
     }
   }, [location.pathname, location.search]);
 
-  const handleSearch = async (e: React.FormEvent) => {
+  const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     
     localStorage.setItem('searchLocation', locationQuery);
@@ -51,24 +50,23 @@ const SearchBar = ({ className }: { className?: string }) => {
     if (status !== 'all') params.append('status', status);
     
     // Track the search in our system
-    if (locationQuery || propertyType !== 'all' || status !== 'all') {
+    if (locationQuery) {
       try {
         // Add to recent searches for logged-in users
         const searchData = {
-          query: locationQuery || 'All Properties',
+          query: locationQuery,
           params: {
-            location: locationQuery || undefined,
+            location: locationQuery,
             type: propertyType !== 'all' ? propertyType : undefined,
             status: status !== 'all' ? status : undefined
           },
           timestamp: new Date().toISOString()
         };
         
-        // Call API to save recent search
-        await addRecentSearch(searchData)
-          .catch(err => console.error('Error saving recent search:', err));
+        addRecentSearch(searchData)
+          .catch(err => console.log('Error saving recent search:', err));
       } catch (error) {
-        console.error('Error tracking search:', error);
+        console.log('Error tracking search:', error);
       }
     }
     
